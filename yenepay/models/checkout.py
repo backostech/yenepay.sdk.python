@@ -433,3 +433,9 @@ class ExpressCheckout(Checkout):
     def __init__(self, *args, **kwargs):
         super().__init__(EXPRESS, *args, **kwargs)
 
+
+class CartCheckout(Checkout):
+    """A Checkout class that process cart"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(CART, *args, **kwargs)
