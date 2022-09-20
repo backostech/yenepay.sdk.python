@@ -425,3 +425,11 @@ class Checkout(metaclass=ABCMeta):
             return response["result"]
         else:
             raise CheckoutError(pformat(response))
+
+
+class ExpressCheckout(Checkout):
+    """A Checkout class that process express"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(EXPRESS, *args, **kwargs)
+
