@@ -11,6 +11,7 @@ from faker import Faker
 from yenepay.constants import CART, EXPRESS
 from yenepay.exceptions import CheckoutError
 from yenepay.models.checkout import (
+    CartCheckout,
     Checkout as AbstractCheckout,
     ExpressCheckout,
     Item,
@@ -431,3 +432,32 @@ class TestExpressCheckout(unittest.TestCase):
         """test checkout instance."""
         self.assertTrue(isinstance(self.checkout, AbstractCheckout))
         self.assertTrue(isinstance(self.checkout, ExpressCheckout))
+
+
+class TestCartCheckout(unittest.TestCase):
+    """Cart checkout test."""
+
+    def setUp(self):
+        merchant_id = "0000"
+        items = [
+            Item(
+                fake.name(),
+                get_random_price(),
+                1,
+            ),
+            Item(
+                fake.name(),
+                get_random_price(),
+                1,
+            ),
+        ]
+        self.checkout = CartCheckout(merchant_id, items)
+
+    def test_process(self):
+        """test process."""
+        self.assertEqual(self.checkout.process, CART)
+
+    def test_checkout_instance(self):
+        """test checkout instance."""
+        self.assertTrue(isinstance(self.checkout, AbstractCheckout))
+        self.assertTrue(isinstance(self.checkout, CartCheckout))
