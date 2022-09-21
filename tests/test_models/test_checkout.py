@@ -10,7 +10,11 @@ from faker import Faker
 
 from yenepay.constants import CART, EXPRESS
 from yenepay.exceptions import CheckoutError
-from yenepay.models.checkout import Checkout as AbstractCheckout, Item
+from yenepay.models.checkout import (
+    Checkout as AbstractCheckout,
+    ExpressCheckout,
+    Item,
+)
 
 fake = Faker()
 
@@ -104,8 +108,8 @@ class TestItem(unittest.TestCase):
         self.assertEqual(self.item.to_dict(), data)
 
 
-class TestCheckoutWithRequiredAttributes(unittest.TestCase):
-    """Test checkout model using requied attribute only."""
+class CheckoutSetup:
+    """Helper class for testing checkout model."""
 
     def setUp(self):
         self.merchant_id = "0000"
@@ -141,6 +145,10 @@ class TestCheckoutWithRequiredAttributes(unittest.TestCase):
         kwargs.setdefault("merchant_id", self.merchant_id)
         kwargs.setdefault("items", self.single_item)
         return Checkout(EXPRESS, **kwargs)
+
+
+class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
+    """Test checkout model using requied attribute only."""
 
     def test_process(self):
         """test process."""
@@ -399,3 +407,27 @@ class TestCheckoutWithRequiredAttributes(unittest.TestCase):
 
         with self.assertRaises(CheckoutError):
             express_checkout.get_url()
+
+
+class TestExpressCheckout(unittest.TestCase):
+    """Express checkout test."""
+
+    def setUp(self):
+        merchant_id = "0000"
+        items = [
+            Item(
+                fake.name(),
+                get_random_price(),
+                1,
+            ),
+        ]
+        self.checkout = ExpressCheckout(merchant_id, items)
+
+    def test_process(self):
+        """test process."""
+        self.assertEqual(self.checkout.process, EXPRESS)
+
+    def test_checkout_instance(self):
+        """test checkout instance."""
+        self.assertTrue(isinstance(self.checkout, AbstractCheckout))
+        self.assertTrue(isinstance(self.checkout, ExpressCheckout))
