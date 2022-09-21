@@ -106,7 +106,7 @@ class TestItem(unittest.TestCase):
             "quantity": self.item.quantity,
         }
 
-        self.assertEqual(self.item.to_dict(), data)
+        self.assertDictEqual(self.item.to_dict(), data)
 
 
 class CheckoutSetup:
@@ -340,7 +340,7 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
         }
         cart_dict = self.cart_checkout.to_dict()
 
-        self.assertEqual(cart_dict, data)
+        self.assertDictEqual(cart_dict, data)
 
     def test_to_dict_with_express_process(self):
         """test to dict with process type Express."""
@@ -353,7 +353,7 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
         }
         express_dict = self.express_checkout.to_dict()
 
-        self.assertEqual(express_dict, data)
+        self.assertDictEqual(express_dict, data)
 
     def test_checkout_representation(self):
         """test checkout representation."""
