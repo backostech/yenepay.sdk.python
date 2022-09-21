@@ -461,3 +461,36 @@ class TestCartCheckout(unittest.TestCase):
         """test checkout instance."""
         self.assertTrue(isinstance(self.checkout, AbstractCheckout))
         self.assertTrue(isinstance(self.checkout, CartCheckout))
+
+    def test_add_item_with_valid_item(self):
+        """test add_item with valid item."""
+
+        item = Item(fake.name(), get_random_price(), 1)
+        self.checkout.add_item(item)
+
+        self.assertIn(item, self.checkout.items)
+
+    def test_add_item_with_invali_data(self):
+        """test add_item with invalid data."""
+
+        with self.assertRaises(TypeError):
+            self.checkout.add_item(0)
+
+    def test_add_items_with_valid_item(self):
+        """test add_items with valid item."""
+
+        items = [
+            Item(fake.name(), get_random_price(), 1),
+            Item(fake.name(), get_random_price(), 1),
+        ]
+
+        self.checkout.add_items(*items)
+
+        self.assertIn(items[0], self.checkout.items)
+        self.assertIn(items[1], self.checkout.items)
+
+    def test_add_items_with_invali_data(self):
+        """test add_items with invalid data."""
+
+        with self.assertRaises(TypeError):
+            self.checkout.add_items(*[0])
