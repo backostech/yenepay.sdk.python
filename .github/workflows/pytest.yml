@@ -16,7 +16,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    env:
+      YENEPAY_MERCHANT_ID: ${{ secrets.YENEPAY_MERCHANT_ID }}
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.8
@@ -26,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest faker==14.2.0
+        pip install pytest validators faker==14.2.0
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
       run: |
