@@ -439,3 +439,20 @@ class CartCheckout(Checkout):
 
     def __init__(self, *args, **kwargs):
         super().__init__(CART, *args, **kwargs)
+
+    def add_item(self, item):
+        """Add item into a cart."""
+
+        if not isinstance(item, Item):
+            raise TypeError(
+                "Checkout item type must be yenepay.model.checkout.Item, "
+                "got {}".format(type(item).__name__)
+            )
+
+        self.items.append(item)
+
+    def add_items(self, *items):
+        """Add multiple items into a cart."""
+
+        for item in items:
+            self.add_item(item)
