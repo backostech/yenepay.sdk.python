@@ -1,7 +1,7 @@
 """
 YenePay Python API Representation
 """
-
+import json
 import typing
 
 import requests
@@ -42,46 +42,52 @@ class ApiRequest:
     @classmethod
     def checkout(
         cls,
-        checkout,
+        data,
         is_sandbox: typing.Optional[bool] = False,
     ) -> typing.Tuple[int, dict]:
         """Make request to checkout url"""
 
         response = requests.post(
-            Api.checkout.sandbox
-            if checkout.is_sandbox
-            else Api.checkout.production,
-            json=checkout.to_dict(),
+            Api.checkout.sandbox if is_sandbox else Api.checkout.production,
+            json=data,
             headers=cls.headers,
         )
-        return response.status_code, response.json()
+        try:
+            return response.status_code, response.json()
+        except json.JSONDecodeError:
+            content = response.content
+            return response.status_code, content
 
     @classmethod
     def pdt(
         cls,
-        json: typing.Union[str, int, float],
+        data: typing.Union[str, int, float],
         is_sandbox: typing.Optional[bool] = False,
     ) -> typing.Tuple[int, dict]:
         """Make request to pdt url"""
 
         response = requests.post(
             Api.pdt.sandbox if is_sandbox else Api.pdt.production,
-            json=json,
+            json=data,
             headers=cls.headers,
         )
-        return response.status_code, response.json()
+        try:
+            return response.status_code, response.json()
+        except json.JSONDecodeError:
+            content = response.content
+            return response.status_code, content
 
     @classmethod
     def ipn(
         cls,
-        json: typing.Union[str, int, float],
+        data: typing.Union[str, int, float],
         is_sandbox: typing.Optional[bool] = False,
     ) -> typing.Tuple[int, dict]:
         """Make request to ipn url"""
 
         response = requests.post(
             Api.ipn.sandbox if is_sandbox else Api.ipn.production,
-            json=json,
+            data=json,
             headers=cls.headers,
         )
         return response.status_code, response.json()
