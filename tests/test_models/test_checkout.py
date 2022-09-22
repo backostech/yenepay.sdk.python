@@ -16,6 +16,7 @@ from yenepay.models.checkout import (
     ExpressCheckout,
     Item,
 )
+from yenepay.models.client import Client
 
 fake = Faker()
 
@@ -133,17 +134,17 @@ class CheckoutSetup:
                 1,
             ),
         ]
-
+        self.client = Client(self.merchant_id)
         self.cart_checkout = self.get_cart_checkout()
         self.express_checkout = self.get_express_checkout()
 
     def get_cart_checkout(self, **kwargs):
-        kwargs.setdefault("merchant_id", self.merchant_id)
+        kwargs.setdefault("client", self.client)
         kwargs.setdefault("items", self.multiple_items)
         return Checkout(CART, **kwargs)
 
     def get_express_checkout(self, **kwargs):
-        kwargs.setdefault("merchant_id", self.merchant_id)
+        kwargs.setdefault("client", self.client)
         kwargs.setdefault("items", self.single_item)
         return Checkout(EXPRESS, **kwargs)
 
@@ -166,15 +167,6 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
         self.assertEqual(self.express_checkout.merchant_id, self.merchant_id)
         self.assertEqual(self.cart_checkout.merchantId, self.merchant_id)
         self.assertEqual(self.express_checkout.merchantId, self.merchant_id)
-
-    def test_merchant_id_setter(self):
-        """test merchant id setter."""
-        merchant_id = "111"
-        self.cart_checkout.merchant_id = merchant_id
-        self.express_checkout.merchant_id = merchant_id
-
-        self.assertEqual(self.cart_checkout.merchantId, merchant_id)
-        self.assertEqual(self.express_checkout.merchantId, merchant_id)
 
     def test_items(self):
         """test items."""
@@ -379,8 +371,8 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
     def test_get_url_with_cart_process(self):
         """test get url with cart process."""
         merchant_id = os.environ.get("YENEPAY_MERCHANT_ID", self.merchant_id)
-
-        checkout = self.get_cart_checkout(merchant_id=merchant_id)
+        client = Client(merchant_id)
+        checkout = self.get_cart_checkout(client=client)
         url = checkout.get_url()
 
         self.assertTrue(validators.url(url))
@@ -388,20 +380,17 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
     def test_get_url_with_express_process(self):
         """test get url with express process."""
         merchant_id = os.environ.get("YENEPAY_MERCHANT_ID", self.merchant_id)
-
-        checkout = self.get_express_checkout(merchant_id=merchant_id)
+        client = Client(merchant_id)
+        checkout = self.get_express_checkout(client=client)
         url = checkout.get_url()
 
         self.assertTrue(validators.url(url))
 
     def test_get_url_with_invalid_data(self):
         """test get url with invalid data."""
-        cart_checkout = Checkout(
-            CART, merchant_id=None, items=self.multiple_items
-        )
-        express_checkout = Checkout(
-            EXPRESS, merchant_id=None, items=self.single_item
-        )
+        client = Client(None)
+        cart_checkout = Checkout(CART, client, items=self.multiple_items)
+        express_checkout = Checkout(EXPRESS, client, items=self.single_item)
 
         with self.assertRaises(CheckoutError):
             cart_checkout.get_url()
