@@ -21,10 +21,13 @@ def get_requirements():
 
 setup(
     name="yenepay",
-    version="0.1.0",
+    version="0.2.0",
     author="Wendirad Demelash",
     author_email="wendiradame@backostech.com",
-    description="Python SDK for YenePay payment integration",
+    description=(
+        "Unofficial Python SDK for YenePay (https://yenepay.com)"
+        " payment integration"
+    ),
     long_description=get_discription(),
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=("tests", "tests.*", "examples.*", "docs")),
