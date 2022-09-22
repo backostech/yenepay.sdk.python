@@ -13,6 +13,7 @@ from requests import codes
 from yenepay.api import ApiRequest
 from yenepay.constants import CART, EXPRESS
 from yenepay.exceptions import CheckoutError
+from yenepay.models.pdt import PDT
 
 
 class Item:
@@ -100,8 +101,8 @@ class Checkout(metaclass=ABCMeta):
     def __init__(
         self,
         process: str,
-        merchant_id: str,
-        items: typing.List[Item],
+        client: str,
+        items: typing.List[Item] = [],
         merchant_order_id: typing.Optional[str] = None,
         success_url: typing.Optional[str] = None,
         cancel_url: typing.Optional[str] = None,
@@ -122,11 +123,7 @@ class Checkout(metaclass=ABCMeta):
                     of either Express or Cart. Use Express checkout type for
                     single item payment and Cart if this payment includes more
                     than one item.
-        :param merchant_id: A unique merchant short code that is assigned to
-                    a merchant when signing up for a YenePay merchant account.
-                    Has a minimum of 4 digits and can be found after signing
-                    into YenePay account manager
-                    (https://www.yenepay.com/account)
+        :params client: yenepay.Client instance.
         :param items: Items to be purchased.
         :param merchant_order_id: A unique identifier for this payment order
                     on the merchant’s platform. Will be used to track payment
@@ -175,7 +172,7 @@ class Checkout(metaclass=ABCMeta):
         """
 
         self._process = process
-        self.merchantId = merchant_id
+        self._client = client
         self.items = items
         self.merchantOrderId = merchant_order_id
         self.successUrl = success_url
@@ -241,12 +238,17 @@ class Checkout(metaclass=ABCMeta):
     @property
     def merchant_id(self) -> str:
         """return merchant id."""
-        return self.merchantId
+        return self._client.merchantId
 
-    @merchant_id.setter
-    def merchant_id(self, value: str) -> None:
-        """set merchant id"""
-        self.merchantId = value
+    @property
+    def merchantId(self) -> str:
+        """return merchant id."""
+        return self._client.merchantId
+
+    @property
+    def token(self) -> str:
+        """return client pdt token."""
+        return self._client.pdtToken
 
     @property
     def merchant_order_id(self) -> typing.Optional[str]:
@@ -383,7 +385,7 @@ class Checkout(metaclass=ABCMeta):
         data = {}
         attrs = [
             "process",
-            "merchantQrderId",
+            "merchantOrderId",
             "merchantId",
             "successUrl",
             "cancelUrl",
@@ -420,11 +422,23 @@ class Checkout(metaclass=ABCMeta):
     def get_url(self):
         """return checkout url"""
 
-        status_code, response = ApiRequest.checkout(self)
+        status_code, response = ApiRequest.checkout(
+            self.to_dict(), self.is_sandbox
+        )
         if status_code == codes.ok:
             return response["result"]
         else:
             raise CheckoutError(pformat(response))
+
+    def check_pdt_status(self, transaction_id: str):
+        """Check pdt status."""
+        pdt = PDT(
+            self._client,
+            self.merchant_order_id,
+            transaction_id,
+            use_sandbox=self.is_sandbox,
+        )
+        return pdt.check_status()
 
 
 class ExpressCheckout(Checkout):
