@@ -7,6 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import datetime
+import os
 import sys
 
 from pip._vendor.pkg_resources import parse_version
