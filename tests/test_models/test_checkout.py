@@ -140,13 +140,15 @@ class CheckoutSetup:
 
     def get_cart_checkout(self, **kwargs):
         kwargs.setdefault("client", self.client)
+        kwargs.setdefault("process", CART)
         kwargs.setdefault("items", self.multiple_items)
-        return Checkout(CART, **kwargs)
+        return Checkout(**kwargs)
 
     def get_express_checkout(self, **kwargs):
         kwargs.setdefault("client", self.client)
+        kwargs.setdefault("process", EXPRESS)
         kwargs.setdefault("items", self.single_item)
-        return Checkout(EXPRESS, **kwargs)
+        return Checkout(**kwargs)
 
 
 class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
@@ -177,10 +179,10 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
         """test checkout model with None value of process type."""
 
         with self.assertRaises(ValueError):
-            Checkout(None, self.merchant_id, self.single_item)
+            Checkout(self.client, None, self.single_item)
 
         with self.assertRaises(ValueError):
-            Checkout(None, self.merchant_id, self.multiple_items)
+            Checkout(self.client, None, self.multiple_items)
 
     def test_validation_with_invalid_process(self):
         """test checkout model with invalid process type."""
@@ -188,10 +190,10 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
         process = fake.name()
 
         with self.assertRaises(ValueError):
-            Checkout(process, self.merchant_id, self.single_item)
+            Checkout(self.client, process, self.single_item)
 
         with self.assertRaises(ValueError):
-            Checkout(process, self.merchant_id, self.multiple_items)
+            Checkout(self.client, process, self.multiple_items)
 
     def test_process_is_readonly(self):
         """test process is readonly."""
@@ -319,7 +321,7 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
     def test_items_with_express_and_multiple_items(self):
         """test items with express process and multiple items."""
         with self.assertRaises(ValueError):
-            Checkout(EXPRESS, self.merchant_id, self.multiple_items)
+            Checkout(self.client, EXPRESS, self.multiple_items)
 
     def test_to_dict_with_cart_process(self):
         """test to dict with process type Cart."""
@@ -389,8 +391,8 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
     def test_get_url_with_invalid_data(self):
         """test get url with invalid data."""
         client = Client(None)
-        cart_checkout = Checkout(CART, client, items=self.multiple_items)
-        express_checkout = Checkout(EXPRESS, client, items=self.single_item)
+        cart_checkout = Checkout(client, CART, items=self.multiple_items)
+        express_checkout = Checkout(client, EXPRESS, items=self.single_item)
 
         with self.assertRaises(CheckoutError):
             cart_checkout.get_url()
@@ -411,7 +413,8 @@ class TestExpressCheckout(unittest.TestCase):
                 1,
             ),
         ]
-        self.checkout = ExpressCheckout(merchant_id, items)
+        self.client = Client(merchant_id)
+        self.checkout = ExpressCheckout(self.client, items)
 
     def test_process(self):
         """test process."""
@@ -440,7 +443,8 @@ class TestCartCheckout(unittest.TestCase):
                 1,
             ),
         ]
-        self.checkout = CartCheckout(merchant_id, items)
+        self.client = Client(merchant_id)
+        self.checkout = CartCheckout(self.client, items)
 
     def test_process(self):
         """test process."""

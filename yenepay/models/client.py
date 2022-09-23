@@ -12,7 +12,10 @@ class Client:
     """Client model."""
 
     def __init__(
-        self, merchant_id: str, token: typing.Optional[str] = None
+        self,
+        merchant_id: str,
+        token: typing.Optional[str] = None,
+        use_sandbox: typing.Optional[bool] = False,
     ) -> None:
         """Representation of API client.
 
@@ -20,13 +23,18 @@ class Client:
                 a merchant when signing up for a YenePay merchant account.
                 Has a minimum of 4 digits and can be found after signing
                 into YenePay account manager (https://www.yenepay.com/account)
+        :type merchant_id: :obj:`str`
         :param token: A request authentication token that is assigned to a
                 YenePay merchant account can be found on the Settings page
                 of YenePay’s account manager.
+        :type token: :obj:`str`
+        :param use_sandbox: Use sandbox environment. Default is False.
+        :type use_sandbox: Optional :obj:`bool`
         """
 
         self.merchantId = merchant_id
         self.pdtToken = token
+        self.use_sandbox = use_sandbox
 
     @property
     def merchant_id(self) -> str:
@@ -60,6 +68,11 @@ class Client:
 
         kwargs["client"] = self
         return ExpressCheckout(*args, **kwargs)
+
+    @property
+    def is_sandbox(self) -> bool:
+        """return if sandbox is enabled."""
+        return self.use_sandbox
 
     def check_pdt_status(
         self, merchant_order_id: str, transaction_id, use_sandbox: bool = False

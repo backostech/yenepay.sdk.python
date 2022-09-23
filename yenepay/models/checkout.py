@@ -2,7 +2,6 @@
 YenePay models
 """
 import json
-import os
 import typing
 import uuid
 from abc import ABCMeta, abstractmethod
@@ -95,13 +94,16 @@ class Item:
 
 
 class Checkout(metaclass=ABCMeta):
-    """Create YenePay checkout"""
+    """
+    Creates a new payment order on YenePay for the authenticated user and
+    redirects to checkout application to complete the payment.
+    """
 
     @abstractmethod
     def __init__(
         self,
-        process: str,
         client: str,
+        process: str,
         items: typing.List[Item] = [],
         merchant_order_id: typing.Optional[str] = None,
         success_url: typing.Optional[str] = None,
@@ -115,17 +117,16 @@ class Checkout(metaclass=ABCMeta):
         total_items_discount: typing.Optional[float] = None,
         total_items_tax1: typing.Optional[float] = None,
         total_items_tax2: typing.Optional[float] = None,
-        use_sandbox: typing.Optional[bool] = False,
     ) -> None:
-        """YenePay checkout option
+        """YenePay checkout options
 
+        :param client: yenepay.Client instance.
+        :type client: :obj:`yenepay.models.client.Client`
         :param process:  Checkout type for this payment. Should have a value
                 of either Express or Cart. Use Express checkout type for
                 single item payment and Cart if this payment includes more
                 than one item.
         :type process: :obj:`str`
-        :param client: yenepay.Client instance.
-        :type client: :obj:`yenepay.models.client.Client`
         :param items: Items to be purchased.
         :type items: List :obj:`yenepay.models.checkout.Item`
         :param merchant_order_id: A unique identifier for this payment order
@@ -183,12 +184,10 @@ class Checkout(metaclass=ABCMeta):
                 checkout. When calculating total payment amount, this will
                 be added to the cart items total amount.
         :type total_items_tax2: Optional :obj:`float`
-        :param use_sandbox: Use sandbox environment. Default is False.
-        :type use_sandbox: Optional :obj:`bool`
         """
 
-        self._process = process
         self._client = client
+        self._process = process
         self.items = items
         self.merchantOrderId = merchant_order_id
         self.successUrl = success_url
@@ -202,15 +201,21 @@ class Checkout(metaclass=ABCMeta):
         self.totalItemsDiscount = total_items_discount
         self.totalItemsTax1 = total_items_tax1
         self.totalItemsTax2 = total_items_tax2
-        self.use_sandbox = (
-            use_sandbox or os.environ.get("YENEPAY_ENVIRONMENT") or False
-        )
         self._validate()
 
     def _validate(self) -> None:
         """
         validate configuration.
         """
+
+        from yenepay.models.client import Client
+
+        if not isinstance(self._client, Client):
+            raise TypeError(
+                "client must be instance of yenepay.Client, got {}".format(
+                    type(self._client).__name__
+                )
+            )
 
         if self.process is None:
             raise ValueError("Checkout process cannot be None.")
@@ -224,7 +229,7 @@ class Checkout(metaclass=ABCMeta):
 
         if not isinstance(self.items, (tuple, set, list)):
             raise TypeError(
-                "Items must be tuple, set or list {}".format(
+                "Items must be tuple, set or list, got {}".format(
                     type(self.items).__name__
                 )
             )
@@ -383,13 +388,13 @@ class Checkout(metaclass=ABCMeta):
 
     @total_items_tax2.setter
     def total_items_tax2(self, value: typing.Optional[float]) -> None:
-        """set total items tax2"""
+        """set tis_saotal items tax2"""
         self.totalItemsTax2 = value
 
     @property
     def is_sandbox(self) -> bool:
         """return if sandbox is enabled."""
-        return self.use_sandbox
+        return self._client.use_sandbox
 
     def __setattr__(self, attr, value) -> None:
         """set attribute value."""
@@ -460,15 +465,15 @@ class Checkout(metaclass=ABCMeta):
 class ExpressCheckout(Checkout):
     """A Checkout class that process express"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(EXPRESS, *args, **kwargs)
+    def __init__(self, client, *args, **kwargs):
+        super().__init__(client, EXPRESS, *args, **kwargs)
 
 
 class CartCheckout(Checkout):
     """A Checkout class that process cart"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(CART, *args, **kwargs)
+    def __init__(self, client, *args, **kwargs):
+        super().__init__(client, CART, *args, **kwargs)
 
     def add_item(self, item):
         """Add item into a cart."""
