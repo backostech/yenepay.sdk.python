@@ -22,8 +22,8 @@ def get_requirements():
 setup(
     name="yenepay",
     version="0.2.0",
-    author="Wendirad Demelash",
-    author_email="wendiradame@backostech.com",
+    author="Backos Technologies",
+    author_email="info@backostech.com",
     description=(
         "Unofficial Python SDK for YenePay (https://yenepay.com)"
         " payment integration"
