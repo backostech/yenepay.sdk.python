@@ -8,10 +8,14 @@
 
 import datetime
 
+from pip._vendor.pkg_resources import parse_version
+
+import yenepay
+
 project = "YenePay"
 copyright = f"{datetime.date.today().year}, Backos Technologies"
-author = "Wendirad Demelash"
-release = "v0.2.0"
+author = "Backos Technologies"
+release = parse_version(yenepay.__version__).public
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

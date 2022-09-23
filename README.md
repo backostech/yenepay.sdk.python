@@ -101,7 +101,7 @@ if response.result == "SUCCESS" and response.status == "Paid":
 ```
 
 
-* Read more fron the documation [ReadTheDocs](https://yenepay.readthedocs.org).
+* Read more fron the documation [readthedocs](https://yenepay.readthedocs.io/).
 
 
 ## Contact
