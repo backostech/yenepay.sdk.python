@@ -17,13 +17,12 @@ class Client:
         """Representation of API client.
 
         :param merchant_id: A unique merchant short code that is assigned to
-                    a merchant when signing up for a YenePay merchant account.
-                    Has a minimum of 4 digits and can be found after signing
-                    into YenePay account manager
-                    (https://www.yenepay.com/account)
-        :params token: a request authentication token that is assigned to a
-                    YenePay merchant account can be found on the Settings page
-                    of YenePay’s account manager.
+                a merchant when signing up for a YenePay merchant account.
+                Has a minimum of 4 digits and can be found after signing
+                into YenePay account manager (https://www.yenepay.com/account)
+        :param token: A request authentication token that is assigned to a
+                YenePay merchant account can be found on the Settings page
+                of YenePay’s account manager.
         """
 
         self.merchantId = merchant_id

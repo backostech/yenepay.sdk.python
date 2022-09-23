@@ -25,10 +25,10 @@ class PDT:
 
         :params client: yenepay.Client instance.
         :params transaction_id: a unique identifier id of the payment
-                    transaction that is set on YenePay’s platform. This id can
-                    be obtained from your SuccessUrl or IPNUrl endpoints.
+                transaction that is set on YenePay’s platform. This id can
+                be obtained from your SuccessUrl or IPNUrl endpoints.
         :params merchant_order_id: the order id for this transaction that is
-                    set on your platform.
+                set on your platform.
         """
 
         self._client = client

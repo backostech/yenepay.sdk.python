@@ -32,14 +32,14 @@ class Item:
         Initialize the item.
 
         :param name: A unique identifier of the item (SKU, UUID,…)
-                    that is used to identify the item on the merchant’s
-                    platform.
+                that is used to identify the item on the merchant’s
+                platform.
         :param unit_price: Amount in ETB currency. Required for Express type
-                    checkout.
+                checkout.
         :param quantity: Quantity of the item. Required for Express type
-                    checkout.
+                checkout.
         :param item_id: Optional item id. Required for Express type
-                    checkout.
+                checkout.
         """
 
         self.itemId = item_id or str(uuid.uuid4())
@@ -120,55 +120,71 @@ class Checkout(metaclass=ABCMeta):
         """YenePay checkout option
 
         :param process:  Checkout type for this payment. Should have a value
-                    of either Express or Cart. Use Express checkout type for
-                    single item payment and Cart if this payment includes more
-                    than one item.
-        :params client: yenepay.Client instance.
+                of either Express or Cart. Use Express checkout type for
+                single item payment and Cart if this payment includes more
+                than one item.
+        :type process: :obj:`str`
+        :param client: yenepay.Client instance.
+        :type client: :obj:`yenepay.models.client.Client`
         :param items: Items to be purchased.
+        :type items: List :obj:`yenepay.models.checkout.Item`
         :param merchant_order_id: A unique identifier for this payment order
-                    on the merchant’s platform. Will be used to track payment
-                    status for this order.
+                on the merchant’s platform. Will be used to track payment
+                status for this order.
+        :type merchant_order_id: Optional :obj:`str`
         :param success_url: A fully qualified URL endpoint on the merchant’s
-                    platform that will be used to redirect the paying customer
-                    after the payment has successfully been completed.
+                platform that will be used to redirect the paying customer
+                after the payment has successfully been completed.
+        :type success_url: Optional :obj:`str`
         :param cancel_url: A fully qualified URL endpoint on the merchant’s
-                    platform that will be used to redirect the paying
-                    customer if this payment is cancelled by the customer.
+                platform that will be used to redirect the paying
+                customer if this payment is cancelled by the customer.
+        :type cancel_url: Optional :obj:`str`
         :param ipn_url: A fully qualified URL endpoint on the merchant’s
-                    platform that will be used to send Instant Payment
-                    Notification to the merchant’s platform when a payment
-                    is successfully completed.
+                platform that will be used to send Instant Payment
+                Notification to the merchant’s platform when a payment
+                is successfully completed.
+        :type ipn_url: Optional :obj:`str`
         :param failure_url: A fully qualified URL endpoint on the merchant’s
-                    platform that will be used to redirect the paying customer
-                    if this payment fails.
+                platform that will be used to redirect the paying customer
+                if this payment fails.
+        :type failure_url: Optional :obj:`str`
         :param expires_after: Expiration period for this payment in minutes.
-                    This payment order will expire after the specified number
-                    of minutes, if specified.
+                This payment order will expire after the specified number
+                of minutes, if specified.
+        :type expires_after: Optional :obj:`int`
         :param expires_in_days: Expiration period for this payment in days.
-                    This payment order will expire after the specified number
-                    of days. The default value is 1 day.
+                This payment order will expire after the specified number
+                of days. The default value is 1 day.
+        :type expires_in_days: Optional :obj:`int`
         :param total_items_handling_fee: Handling fee in ETB currency for this
-                    payment order, if applicable. Set this value for Cart type
-                    checkout. When calculating total payment amount, this will
-                    be added to the cart items total amount.
+                payment order, if applicable. Set this value for Cart type
+                checkout. When calculating total payment amount, this will
+                be added to the cart items total amount.
+        :type total_items_handling_fee: Optional :obj:`float`
         :param total_items_delivery_fee: Delivery or shipping fee in ETB
-                    currency for this payment order, if applicable. Set this
-                    value for Cart type checkout. When calculating total
-                    payment amount, this will be added to the cart items total
-                    amount.
+                currency for this payment order, if applicable. Set this
+                value for Cart type checkout. When calculating total
+                payment amount, this will be added to the cart items total
+                amount.
+        :type total_items_devlivery_fee: Optional :obj:`float`
         :param total_items_discount: Discount amount in ETB currency for this
-                    payment order, if applicable. Set this value for Cart type
-                    checkout. When calculating total payment amount, this will
-                    be deducted from the cart items total amount.
+                payment order, if applicable. Set this value for Cart type
+                checkout. When calculating total payment amount, this will
+                be deducted from the cart items total amount.
+        :type total_items_discount: Optional :obj:`float`
         :param total_items_tax1: Tax amount in ETB currency for this payment
-                    order, if applicable. Set this value for Cart type
-                    checkout. When calculating total payment amount, this will
-                    be added to the cart items total amount.
+                order, if applicable. Set this value for Cart type
+                checkout. When calculating total payment amount, this will
+                be added to the cart items total amount.
+        :type total_items_tax1: Optional :obj:`float`
         :param total_items_tax2: Tax amount in ETB currency for this payment
-                    order, if applicable. Set this value for Cart type
-                    checkout. When calculating total payment amount, this will
-                    be added to the cart items total amount.
+                order, if applicable. Set this value for Cart type
+                checkout. When calculating total payment amount, this will
+                be added to the cart items total amount.
+        :type total_items_tax2: Optional :obj:`float`
         :param use_sandbox: Use sandbox environment. Default is False.
+        :type use_sandbox: Optional :obj:`bool`
         """
 
         self._process = process
