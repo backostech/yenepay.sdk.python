@@ -7,10 +7,15 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import datetime
+import sys
 
 from pip._vendor.pkg_resources import parse_version
 
 import yenepay
+
+sys.path.insert(0, os.path.abspath("."))
+sys.path.insert(0, os.path.abspath("../"))
+sys.path.insert(0, os.path.abspath("../../"))
 
 project = "YenePay"
 copyright = f"{datetime.date.today().year}, Backos Technologies"
