@@ -23,7 +23,7 @@ To add YenePay to your application and start collecting payments, you will first
 ```sh
 pip install yenepay
 ```
-)
+
 ### Option 2: Directly from [GitHub](https://github.com:backostech/yenepay.sdk.python)
 * Clone package into local folder and change director
 ```sh
@@ -101,7 +101,7 @@ if response.result == "SUCCESS" and response.status == "Paid":
 ```
 
 
-* Read more fron the documation [ReadTheDocs](https://yenepay.readthedocs.com).
+* Read more fron the documation [ReadTheDocs](https://yenepay.readthedocs.org).
 
 
 ## Contact
