@@ -6,10 +6,8 @@ API Reference for YenePay
 Client
 --------
 
-.. autoclass:: yenepay.models.client.Client
+.. automodule:: yenepay.models.client
     :members:
-    :undoc-members:
-    :inherited-members:
 
 Checkout
 ---------
