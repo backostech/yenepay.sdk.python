@@ -17,7 +17,40 @@ from yenepay.models.pdt import PDT
 
 class Item:
     """
-    Represent a single item to be purchased.
+    Represent a single item to be purchased. Item will be used when Express or
+    Cart checkout is created.
+
+    .. note:: Item ID is not required, but if not given the class will
+              generate new UUID for an item.
+
+    * Sample usage
+
+    >>> from yenepay import Item
+    >>>
+    >>> # Creating a single item
+    >>> item = Item(
+            name="PC-1",
+            unit_price=42_000.00,
+            quantity=1,
+        )
+
+    >>> # Or using positional arguments
+    >>> item = Item("PC-1", 42_000.00, 1)
+
+    >>> # Creating multiple items
+    >>> items = [
+            Item("PC-2", 40_000.99, 1),
+            Item("PC-3", 40_000.99, 1),
+            Item("PC-4", 40_000.99, 1),
+            Item("PC-5", 40_000.99, 1),
+    ]
+
+    >>> # Or using Cart
+    >>> from yenepay import Cart, Item
+    >>> cart = Cart(
+            Item("PC-6", 50_700.99, 1),
+            Item("PC-7", 43_001.99, 1),
+        )
     """
 
     def __init__(
@@ -28,17 +61,21 @@ class Item:
         item_id: typing.Optional[str] = None,
     ) -> None:
         """
-        Initialize the item.
-
         :param name: A unique identifier of the item (SKU, UUID,…)
                 that is used to identify the item on the merchant’s
                 platform.
-        :param unit_price: Amount in ETB currency. Required for Express type
-                checkout.
-        :param quantity: Quantity of the item. Required for Express type
-                checkout.
-        :param item_id: Optional item id. Required for Express type
-                checkout.
+        :type name: :func:`str`
+
+        :param unit_price: Amount in ETB currency.
+        :type unit_price: :func:`float`
+
+        :param quantity: Quantity of the item.
+        :type quantity: :func:`int`
+
+        :param item_id: Optional item id.
+        :type item_id: Optional :func:`str`
+
+        :rtype: :obj:`None`
         """
 
         self.itemId = item_id or str(uuid.uuid4())
@@ -48,7 +85,11 @@ class Item:
 
     @property
     def id(self) -> typing.Union[str, uuid.UUID]:
-        """The id property."""
+        """
+        :return: item id
+        :rtype: :func:`str` or :class:`uuid.UUID`
+        """
+
         return self.itemId
 
     @id.setter
@@ -58,7 +99,10 @@ class Item:
 
     @property
     def name(self) -> str:
-        """return item name"""
+        """
+        :return: item name
+        :rtype: :func:`str`
+        """
         return self.itemName
 
     @name.setter
@@ -68,7 +112,10 @@ class Item:
 
     @property
     def unit_price(self) -> float:
-        """return item unit price."""
+        """
+        :return: item unit price
+        :rtype: :func:`float`
+        """
         return self.unitPrice
 
     @unit_price.setter
@@ -77,12 +124,27 @@ class Item:
         self.unitPrice = value
 
     def to_dict(self) -> dict:
-        """return item to dict"""
+        """
+        Convert item properties into dictionary object.
+
+        :return: dictionary of item properties.
+        :rtype: :func:`dict`
+        """
         return {
             attr: getattr(self, attr, None)
             for attr in ["itemId", "itemName", "unitPrice", "quantity"]
             if getattr(self, attr, None) is not None
         }
+
+    def to_json(self) -> bytes:
+        """
+        Convert item properties into json format. usefull while creating
+        requests.
+
+        :return: Json representation of item properties.
+        :rtype: :func:`bytes`
+        """
+        return json.dumps(self.to_dict())
 
     def __repr__(self) -> str:
         """Item representation."""
@@ -101,7 +163,8 @@ class Cart:
 
     def __init__(self, *items: typing.List[Item]) -> None:
         """
-        :param items: Collection of :class:`yenepay.models.checkout.Item` objects
+        :param items: Collection of :class:`yenepay.models.checkout.Item`
+                      objects
         :type items: List of :class:`yenepay.models.checkout.Item`
 
         :rtype: :obj:`None`
@@ -229,10 +292,12 @@ class Cart:
         """
         return self._total_quantity
 
+
 class Checkout(metaclass=ABCMeta):
     """
-    Creates a new payment order on YenePay for the authenticated user and
-    redirects to checkout application to complete the payment.
+    An abstract class to creates a new payment order on YenePay  for a given
+    items and generate redirect link to checkout application to complete the
+    payment.
     """
 
     @abstractmethod
@@ -240,7 +305,7 @@ class Checkout(metaclass=ABCMeta):
         self,
         client: str,
         process: str,
-        items: typing.List[Item] = [],
+        items: typing.Union[typing.List[Item], Cart],
         merchant_order_id: typing.Optional[str] = None,
         success_url: typing.Optional[str] = None,
         cancel_url: typing.Optional[str] = None,
@@ -254,72 +319,87 @@ class Checkout(metaclass=ABCMeta):
         total_items_tax1: typing.Optional[float] = None,
         total_items_tax2: typing.Optional[float] = None,
     ) -> None:
-        """YenePay checkout options
-
+        """
         :param client: yenepay.Client instance.
-        :type client: :obj:`yenepay.models.client.Client`
+        :type client: :class:`yenepay.models.client.Client`
+
         :param process:  Checkout type for this payment. Should have a value
                 of either Express or Cart. Use Express checkout type for
                 single item payment and Cart if this payment includes more
                 than one item.
-        :type process: :obj:`str`
+        :type process: :func:`str`
+
         :param items: Items to be purchased.
-        :type items: List :obj:`yenepay.models.checkout.Item`
+        :type items: List :class:`yenepay.models.checkout.Item`
+
         :param merchant_order_id: A unique identifier for this payment order
                 on the merchant’s platform. Will be used to track payment
                 status for this order.
-        :type merchant_order_id: Optional :obj:`str`
+        :type merchant_order_id: Optional :func:`str`
+
         :param success_url: A fully qualified URL endpoint on the merchant’s
                 platform that will be used to redirect the paying customer
                 after the payment has successfully been completed.
-        :type success_url: Optional :obj:`str`
+        :type success_url: Optional :func:`str`
+
         :param cancel_url: A fully qualified URL endpoint on the merchant’s
                 platform that will be used to redirect the paying
                 customer if this payment is cancelled by the customer.
-        :type cancel_url: Optional :obj:`str`
+        :type cancel_url: Optional :func:`str`
+
         :param ipn_url: A fully qualified URL endpoint on the merchant’s
                 platform that will be used to send Instant Payment
                 Notification to the merchant’s platform when a payment
                 is successfully completed.
-        :type ipn_url: Optional :obj:`str`
+        :type ipn_url: Optional :func:`str`
+
         :param failure_url: A fully qualified URL endpoint on the merchant’s
                 platform that will be used to redirect the paying customer
                 if this payment fails.
-        :type failure_url: Optional :obj:`str`
+        :type failure_url: Optional :func:`str`
+
         :param expires_after: Expiration period for this payment in minutes.
                 This payment order will expire after the specified number
                 of minutes, if specified.
-        :type expires_after: Optional :obj:`int`
+        :type expires_after: Optional :func:`int`
+
         :param expires_in_days: Expiration period for this payment in days.
                 This payment order will expire after the specified number
                 of days. The default value is 1 day.
-        :type expires_in_days: Optional :obj:`int`
+        :type expires_in_days: Optional :func:`int`
+
         :param total_items_handling_fee: Handling fee in ETB currency for this
                 payment order, if applicable. Set this value for Cart type
                 checkout. When calculating total payment amount, this will
                 be added to the cart items total amount.
-        :type total_items_handling_fee: Optional :obj:`float`
+        :type total_items_handling_fee: Optional :func:`float`
+
         :param total_items_delivery_fee: Delivery or shipping fee in ETB
                 currency for this payment order, if applicable. Set this
                 value for Cart type checkout. When calculating total
                 payment amount, this will be added to the cart items total
                 amount.
-        :type total_items_devlivery_fee: Optional :obj:`float`
+        :type total_items_devlivery_fee: Optional :func:`float`
+
         :param total_items_discount: Discount amount in ETB currency for this
                 payment order, if applicable. Set this value for Cart type
                 checkout. When calculating total payment amount, this will
                 be deducted from the cart items total amount.
-        :type total_items_discount: Optional :obj:`float`
+        :type total_items_discount: Optional :func:`float`
+
         :param total_items_tax1: Tax amount in ETB currency for this payment
                 order, if applicable. Set this value for Cart type
                 checkout. When calculating total payment amount, this will
                 be added to the cart items total amount.
-        :type total_items_tax1: Optional :obj:`float`
+        :type total_items_tax1: Optional :func:`float`
+
         :param total_items_tax2: Tax amount in ETB currency for this payment
                 order, if applicable. Set this value for Cart type
                 checkout. When calculating total payment amount, this will
                 be added to the cart items total amount.
-        :type total_items_tax2: Optional :obj:`float`
+        :type total_items_tax2: Optional :func:`float`
+
+        :rtype: :obj:`None`
         """
 
         self._client = client
@@ -363,22 +443,18 @@ class Checkout(metaclass=ABCMeta):
                 )
             )
 
-        if not isinstance(self.items, (tuple, set, list)):
+        if not isinstance(self.items, (tuple, set, list, Cart)):
             raise TypeError(
-                "Items must be tuple, set or list, got {}".format(
-                    type(self.items).__name__
-                )
+                "Items must be tuple, set, list or yenepay.Cart,"
+                " got {}".format(type(self.items).__name__)
             )
 
         if not self.items:
             raise ValueError("Items cannot be empty")
 
-        for idx, item in enumerate(self.items):
-            if not isinstance(item, Item):
-                raise TypeError(
-                    "Checkout item must be type of yenepay.checkout.Item, "
-                    "got {} at inde {}".format(type(item).__name__, idx)
-                )
+        if not isinstance(self.items, Cart):
+            cart = Cart(*(item for item in self.items))
+            self.items = cart
 
         if self.process == EXPRESS and len(self.items) > 1:
             raise ValueError(
@@ -389,27 +465,42 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def process(self) -> str:
-        """return checkout process type."""
+        """
+        :return: checkout process type.
+        :rtype: :func:`str`
+        """
         return getattr(self, "_process", None)
 
     @property
     def merchant_id(self) -> str:
-        """return merchant id."""
+        """
+        :return: checkout merchant id.
+        :rtype: :func:`str`
+        """
         return self._client.merchantId
 
     @property
     def merchantId(self) -> str:
-        """return merchant id."""
+        """
+        :return: checkout merchant id.
+        :rtype: :func:`str`
+        """
         return self._client.merchantId
 
     @property
     def token(self) -> str:
-        """return client pdt token."""
+        """
+        :return: client pdt token.
+        :rtype: :func:`str`
+        """
         return self._client.pdtToken
 
     @property
     def merchant_order_id(self) -> typing.Optional[str]:
-        """return merchant order id."""
+        """
+        :return: checkout merchant order id.
+        :rtype: :func:`str`
+        """
         return self.merchantOrderId
 
     @merchant_order_id.setter
@@ -419,7 +510,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def success_url(self) -> typing.Optional[str]:
-        """return checkout success url ."""
+        """
+        :return: checkout success url.
+        :rtype: :func:`str`
+        """
         return self.successUrl
 
     @success_url.setter
@@ -429,7 +523,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def cancel_url(self):
-        """return chechout cancel url"""
+        """
+        :return: chechout cancel url.
+        :rtype: :func:`str`
+        """
         return self.cancelUrl
 
     @cancel_url.setter
@@ -439,7 +536,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def ipn_url(self) -> typing.Optional[str]:
-        """return ipn url."""
+        """
+        :return: chckout ipn url.
+        :rtype: :func:`str`
+        """
         return self.ipnUrl
 
     @ipn_url.setter
@@ -449,7 +549,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def failure_url(self) -> typing.Optional[str]:
-        """return failure url"""
+        """
+        :return: checkout failure url.
+        :rtype: :func:`str`
+        """
         return self.failureUrl
 
     @failure_url.setter
@@ -459,7 +562,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def expires_after(self) -> int:
-        """return expires after"""
+        """
+        :return: checkout expires after.
+        :rtype: :func:`int`
+        """
         return self.expiresAfter
 
     @expires_after.setter
@@ -469,7 +575,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def expires_in_days(self) -> int:
-        """return expires in days"""
+        """
+        :return: checkout expires in days.
+        :rtype: :func:`int`
+        """
         return self.expiresInDays
 
     @expires_in_days.setter
@@ -479,7 +588,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def total_items_handling_fee(self) -> typing.Optional[float]:
-        """return total items handling fee"""
+        """
+        :return: checkout total items handling fee.
+        :rtype: :func:`int`
+        """
         return self.totalItemsHandlingFee
 
     @total_items_handling_fee.setter
@@ -489,7 +601,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def total_items_delivery_fee(self) -> typing.Optional[float]:
-        """return total items delivery fee"""
+        """
+        :return: checkout total items delivery fee.
+        :rtype: :func:`float`
+        """
         return self.totalItemsDeliveryFee
 
     @total_items_delivery_fee.setter
@@ -499,7 +614,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def total_items_discount(self) -> typing.Optional[float]:
-        """return total items discount"""
+        """
+        :return: checkout total items discount
+        :rtype: :func:`float`
+        """
         return self.totalItemsDiscount
 
     @total_items_discount.setter
@@ -509,7 +627,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def total_items_tax1(self) -> typing.Optional[float]:
-        """return total items tax1"""
+        """
+        :return: checkout total items tax1.
+        :rtype: :func:`float`
+        """
         return self.totalItemsTax1
 
     @total_items_tax1.setter
@@ -519,7 +640,10 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def total_items_tax2(self) -> typing.Optional[float]:
-        """return total items tax2"""
+        """
+        :return: checkout total items tax2.
+        :rtype: :func:`float`
+        """
         return self.totalItemsTax2
 
     @total_items_tax2.setter
@@ -529,8 +653,27 @@ class Checkout(metaclass=ABCMeta):
 
     @property
     def is_sandbox(self) -> bool:
-        """return if sandbox is enabled."""
+        """
+        :return: check if sandbox is enabled or not.
+        :rtype: :func:`bool`
+        """
         return self._client.use_sandbox
+
+    @property
+    def total_price(self) -> float:
+        """
+        :return: checkout total price.
+        :rtype: :func:`float`
+        """
+        return self.items.total_price
+
+    @property
+    def total_quantity(self) -> int:
+        """
+        :return: checkout total quantity.
+        :rtype: :func:`int`
+        """
+        return self.items.total_quantity
 
     def __setattr__(self, attr, value) -> None:
         """set attribute value."""
@@ -539,6 +682,12 @@ class Checkout(metaclass=ABCMeta):
         super().__setattr__(attr, value)
 
     def to_dict(self) -> dict:
+        """
+        Convert checkout properties into dictionary object.
+
+        :return: dictionary of checkout properties
+        :rtype: :func:`dict`
+        """
         data = {}
         attrs = [
             "process",
@@ -564,20 +713,34 @@ class Checkout(metaclass=ABCMeta):
 
         return data
 
-    def to_json(self) -> str:
-        """return json string of checkout object"""
+    def to_json(self) -> bytes:
+        """
+        Convert checkout properties into json format. usefull while creating
+        requests.
+
+        :return: json representaion of checkout properties
+        :rtype: :func:`bytes`
+        """
         return json.dumps(self.to_dict())
 
     def __repr__(self):
+        """representation of checkout object."""
         return "<{}Checkout: {} - {}>".format(
             self.process, self.merchant_order_id, self.merchant_id
         )
 
     def __str__(self):
+        """string representation of checkout object."""
         return self.__repr__()
 
-    def get_url(self):
-        """return checkout url"""
+    def get_url(self) -> str:
+        """
+        :return: checkout url for payment order
+        :rtype: :func:`str`
+
+        :raise yenepay.exceptions.CheckoutError: if paramenters
+                are incorrect.
+        """
 
         status_code, response = ApiRequest.checkout(
             self.to_dict(), self.is_sandbox
@@ -588,7 +751,19 @@ class Checkout(metaclass=ABCMeta):
             raise CheckoutError(pformat(response))
 
     def check_pdt_status(self, transaction_id: str):
-        """Check pdt status."""
+        """
+        Check pdt status of checkout.
+
+        :param transaction_id: a unique identifier id of the payment
+                transaction that is set on YenePay’s platform. This id can be
+                obtained from your checkout success_url or ipn_url endpoints.
+        :type transaction_id: :func:`str`
+
+        :return: Return pdt respose of a server
+        :rtype: :class:`yenepay.models.pdt.PDTRespose`
+        :raise yenepay.exceptions.CheckoutError: if paramenters are
+                    incorrect.
+        """
         pdt = PDT(
             self._client,
             self.merchant_order_id,
@@ -602,28 +777,49 @@ class ExpressCheckout(Checkout):
     """A Checkout class that process express"""
 
     def __init__(self, client, *args, **kwargs):
+        kwargs.pop("process", None)
+        items = kwargs.pop("items", None)
+        if isinstance(items, Item):
+            kwargs.update({"items": [items]})
+
         super().__init__(client, EXPRESS, *args, **kwargs)
+
+    @property
+    def item(self) -> Item:
+        """
+        :return: an item of express checkout.
+        :rtype: :class:`yenepay.models.checkout.Item`
+        """
+        return self.items[0]
 
 
 class CartCheckout(Checkout):
     """A Checkout class that process cart"""
 
     def __init__(self, client, *args, **kwargs):
+        kwargs.pop("process", None)
         super().__init__(client, CART, *args, **kwargs)
 
     def add_item(self, item):
-        """Add item into a cart."""
+        """
+        Add item into a cart.
 
-        if not isinstance(item, Item):
-            raise TypeError(
-                "Checkout item type must be yenepay.model.checkout.Item, "
-                "got {}".format(type(item).__name__)
-            )
+        :param item: an item, that need to be added into a cart.
+        :type item: :class:`yenepay.models.checkout.Item`
 
-        self.items.append(item)
+        :rtype: :obj:`None`
+        """
+        self.items.add_item(item)
 
     def add_items(self, *items):
-        """Add multiple items into a cart."""
+        """
+        Add multiple items into a cart.
+
+        :param items: list of itmems, that need to be added into a cart.
+        :type items: List of :class:`yenepay.models.checkout.Item`
+
+        :rtype: :obj:`None`
+        """
 
         for item in items:
             self.add_item(item)

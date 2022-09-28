@@ -22,14 +22,20 @@ class Api:
     """
 
     class checkout:
+        """Checkout endpoints."""
+
         production = CHECKOUT_PRODUCTION_URL
         sandbox = CHECKOUT_SANDBOX_URL
 
     class pdt:
+        """PDT endpoints."""
+
         production = PDT_PRODUCTION_URL
         sandbox = PDT_SANDBOX_URL
 
     class ipn:
+        """IPN endpoints."""
+
         production = IPN_PRODUCTION_URL
         sandbox = IPN_SANDBOX_URL
 
@@ -45,7 +51,19 @@ class ApiRequest:
         data,
         is_sandbox: typing.Optional[bool] = False,
     ) -> typing.Tuple[int, dict]:
-        """Make request to checkout url"""
+        """
+        Send request to yenepay checkout endpoint.
+
+        :param data: parameters that needed to be sent to YenePay server.
+        :type data: :func:`dict`
+
+        :param is_sandbox: Whether the given client account is usng sandbox
+                environment or not.
+        :type is_sandbox: :func:`bool`
+
+        :returns: Request respose status and content.
+        :rtype: Tuple of :func:`int` and :func:`bytes` or :func:`json`
+        """
 
         response = requests.post(
             Api.checkout.sandbox if is_sandbox else Api.checkout.production,
@@ -55,8 +73,7 @@ class ApiRequest:
         try:
             return response.status_code, response.json()
         except json.JSONDecodeError:
-            content = response.content
-            return response.status_code, content
+            return response.status_code, response.content
 
     @classmethod
     def pdt(
@@ -64,7 +81,19 @@ class ApiRequest:
         data: typing.Union[str, int, float],
         is_sandbox: typing.Optional[bool] = False,
     ) -> typing.Tuple[int, dict]:
-        """Make request to pdt url"""
+        """
+        Send request to yenepay PDT endpoint.
+
+        :param data: parameters that needed to be sent to YenePay server.
+        :type data: :func:`dict`
+
+        :param is_sandbox: Whether the given client account is usng sandbox
+                environment or not.
+        :type is_sandbox: :func:`bool`
+
+        :returns: Request respose status and content.
+        :rtype: Tuple of :func:`int` and :func:`bytes` or :func:`json`
+        """
 
         response = requests.post(
             Api.pdt.sandbox if is_sandbox else Api.pdt.production,
@@ -74,8 +103,7 @@ class ApiRequest:
         try:
             return response.status_code, response.json()
         except json.JSONDecodeError:
-            content = response.content
-            return response.status_code, content
+            return response.status_code, response.content
 
     @classmethod
     def ipn(
@@ -83,11 +111,26 @@ class ApiRequest:
         data: typing.Union[str, int, float],
         is_sandbox: typing.Optional[bool] = False,
     ) -> typing.Tuple[int, dict]:
-        """Make request to ipn url"""
+        """
+        Send request to yenepay IPN endpoint.
+
+        :param data: parameters that needed to be sent to YenePay server.
+        :type data: :func:`dict`
+
+        :param is_sandbox: Whether the given client account is usng sandbox
+                environment or not.
+        :type is_sandbox: :func:`bool`
+
+        :returns: Request respose status and content.
+        :rtype: Tuple of :func:`int` and :func:`bytes` or :func:`json`
+        """
 
         response = requests.post(
             Api.ipn.sandbox if is_sandbox else Api.ipn.production,
-            data=json,
+            json=data,
             headers=cls.headers,
         )
-        return response.status_code, response.json()
+        try:
+            return response.status_code, response.json()
+        except json.JSONDecodeError:
+            return response.status_code, response.content

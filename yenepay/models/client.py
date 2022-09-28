@@ -9,7 +9,7 @@ from yenepay.models.pdt import PDT
 
 
 class Client:
-    """Client model."""
+    """Representation of a single merchant account in YenePay platform."""
 
     def __init__(
         self,
@@ -17,19 +17,22 @@ class Client:
         token: typing.Optional[str] = None,
         use_sandbox: typing.Optional[bool] = False,
     ) -> None:
-        """Representation of API client.
-
+        """
         :param merchant_id: A unique merchant short code that is assigned to
                 a merchant when signing up for a YenePay merchant account.
                 Has a minimum of 4 digits and can be found after signing
                 into YenePay account manager (https://www.yenepay.com/account)
-        :type merchant_id: :obj:`str`
+        :type merchant_id: :func:`str`
+
         :param token: A request authentication token that is assigned to a
                 YenePay merchant account can be found on the Settings page
                 of YenePay’s account manager.
-        :type token: :obj:`str`
+        :type token: :func:`str`
+
         :param use_sandbox: Use sandbox environment. Default is False.
-        :type use_sandbox: Optional :obj:`bool`
+        :type use_sandbox: Optional :func:`bool`
+
+        :rtype: :obj:`None`
         """
 
         self.merchantId = merchant_id
@@ -38,7 +41,10 @@ class Client:
 
     @property
     def merchant_id(self) -> str:
-        """return merchant id."""
+        """
+        :return: client merchant id.
+        :rtype: :func:`str`
+        """
         return self.merchantId
 
     @merchant_id.setter
@@ -48,7 +54,10 @@ class Client:
 
     @property
     def token(self) -> str:
-        """return pdt token."""
+        """
+        :return: client pdt token.
+        :rtype: :func:`str`
+        """
         return self.pdtToken
 
     @token.setter
@@ -56,28 +65,66 @@ class Client:
         """set token."""
         self.pdtToken = value
 
+    @property
+    def is_sandbox(self) -> bool:
+        """
+        check client running sandbox environment.
+
+        :rtype: :func:`bool`
+        """
+        return self.use_sandbox
+
     def get_cart_checkout(self, *args, **kwargs):
-        """return cart checkout."""
+        """
+        Create :class:`yenepay.models.checkout.CartCheckout` instance
+        using a given information. for parameter information refer to
+        a class parameters.
+
+        :return: checkout instance
+        :rtype: :class:`yenepay.models.checkout.CartCheckout`
+        """
         kwargs["client"] = self
         return CartCheckout(*args, **kwargs)
 
     def get_express_checkout(self, *args, **kwargs):
-        """return express checkout."""
+        """
+        Create :class:`yenepay.models.checkout.ExpressCheckout` instance
+        using a given information. for parameter information refer to
+        a class parameters.
+
+        :return: checkout instance
+        :rtype: :class:`yenepay.models.checkout.CartCheckout`
+        """
         if not isinstance(kwargs.get("items"), (tuple, set, list)):
             kwargs["items"] = [kwargs.get("items")]
 
         kwargs["client"] = self
         return ExpressCheckout(*args, **kwargs)
 
-    @property
-    def is_sandbox(self) -> bool:
-        """return if sandbox is enabled."""
-        return self.use_sandbox
-
     def check_pdt_status(
-        self, merchant_order_id: str, transaction_id, use_sandbox: bool = False
+        self,
+        merchant_order_id: str,
+        transaction_id: str,
+        use_sandbox: bool = False,
     ):
-        """check current pdt status."""
+        """
+        Check payment order status for a given transaction.
+
+        :param merchant_order_id: A unique identifier for this payment order
+                on the merchant’s platform. Will be used to track payment
+                status for this order.
+        :type merchant_order_id: Optional :func:`str`
+
+        :param transaction_id: a unique identifier id of the payment
+                transaction that is set on YenePay’s platform. This id can be
+                obtained from your checkout success_url or ipn_url endpoints.
+        :type transaction_id: :func:`str`
+
+        :return: Return pdt respose of a server
+        :rtype: :class:`yenepay.models.pdt.PDTRespose`
+        :raise yenepay.exceptions.CheckoutError: if paramenters are
+                    incorrect.
+        """
 
         pdt = PDT(
             self, merchant_order_id, transaction_id, use_sandbox=use_sandbox

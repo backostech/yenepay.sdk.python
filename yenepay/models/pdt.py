@@ -12,7 +12,7 @@ from yenepay.exceptions import CheckoutError
 
 
 class PDT:
-    """PDT model."""
+    """A class to checks the latest status of a payment order"""
 
     def __init__(
         self,
@@ -21,14 +21,23 @@ class PDT:
         transaction_id: str,
         use_sandbox=False,
     ) -> None:
-        """Checks the latest status of a payment order
+        """
+        :param client: yenepay client account
+        :type client: :class:`yenepay.models.client.Client`
 
-        :params client: yenepay.Client instance.
-        :params transaction_id: a unique identifier id of the payment
+        :param transaction_id: a unique identifier id of the payment
                 transaction that is set on YenePay’s platform. This id can
                 be obtained from your SuccessUrl or IPNUrl endpoints.
-        :params merchant_order_id: the order id for this transaction that is
+        :type transaction_id: :func:`str`
+
+        :param merchant_order_id: the order id for this transaction that is
                 set on your platform.
+        :type merchant_order_id: :func:`str`
+
+        :param use_sandbox: Use sandbox environment. Default is False.
+        :type use_sandbox: Optional :func:`bool`
+
+        :rtype: :obj:`None`
         """
 
         self._client = client
@@ -38,27 +47,42 @@ class PDT:
 
     @property
     def requestType(self) -> str:
-        """return request type."""
+        """
+        :return: PDT request type. always `PDT`
+        :rtype: :func:`str`
+        """
         return "PDT"
 
     @property
     def request_type(self) -> str:
-        """return request typel."""
+        """
+        :return: PDT request type. alway `PDT`
+        :rtype: :func:`str`
+        """
         return self.requestType
 
     @property
     def token(self) -> str:
-        """return pdt token."""
+        """
+        :return: client pdt token.
+        :rtype: :func:`str`
+        """
         return self._client.pdtToken
 
     @property
     def pdtToken(self) -> str:
-        """return client pdt token."""
+        """
+        :return: client pdt token.
+        :rtype: :func:`str`
+        """
         return self._client.pdtToken
 
     @property
     def transaction_id(self) -> str:
-        """return transaction id."""
+        """
+        :return: checkout transaction id.
+        :rtype: :func:`str`
+        """
         return self.transactionId
 
     @transaction_id.setter
@@ -68,7 +92,10 @@ class PDT:
 
     @property
     def merchant_order_id(self) -> str:
-        """return merchant order id."""
+        """
+        :return: checkout merchant order id.
+        :rtype: :func:`str`
+        """
         return self.merchantOrderId
 
     @merchant_order_id.setter
@@ -78,11 +105,20 @@ class PDT:
 
     @property
     def is_sandbox(self) -> bool:
-        """check whether the request under sandbox."""
+        """
+        check client running sandbox environment.
+
+        :rtype: :func:`bool`
+        """
         return self.use_sandbox
 
     def to_dict(self) -> dict:
-        """return dictionary of a PDT."""
+        """
+        Convert PDT properties into dictionary object.
+
+        :return: dictionary of PDT properties
+        :rtype: :func:`dict`
+        """
         return {
             "requestType": self.requestType,
             "pdtToken": self.pdtToken,
@@ -91,7 +127,12 @@ class PDT:
         }
 
     def check_status(self):
-        """check a status of pdt."""
+        """
+        Check the latest status of a given payment order.
+
+        :return: PDT Status
+        :rtype: :class:`yenepay.models.pdt.PDTResponse`
+        """
 
         status_code, response = ApiRequest.pdt(self.to_dict(), self.is_sandbox)
         if status_code == codes.ok:
@@ -112,24 +153,14 @@ class PDTResponse:
     """PDT status resposen class."""
 
     def __init__(self, response: str, pdt: PDT) -> None:
-        """PDT status response
-
+        """
         :param response: Actutal response from api endpoint.
-        :param pdt: PDT instance
+        :type response: :func:`str`
 
-        >>> response = "Status=success&BuyerID=123"
-        >>> pdt_response = PDTResponse(response, PDT)
-        >>> pdt_response._response == response
-        True
+        :param pdt: a PDT instance that reqest in sent from.
+        :type pdt: :class:`yenepay.models.pdt.PDT`
 
-        >>> pdt_response.pdt == PDT
-        True
-
-        >>> pdt_response.status == "success"
-        True
-
-        >>> pdt_response.buyer_id == "123"
-        True
+        :rtype: :obj:`None`
         """
 
         self._response = response

@@ -4,6 +4,4 @@ YenePay exceptions
 
 
 class CheckoutError(Exception):
-    """class for all checkout errors."""
-
-    pass
+    """Exception for checkout errors."""
