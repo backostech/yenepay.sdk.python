@@ -1,6 +1,7 @@
 """
 Test for YenePay checkout
 """
+import json
 import os
 import random
 import unittest
@@ -109,6 +110,19 @@ class TestItem(unittest.TestCase):
 
         self.assertDictEqual(self.item.to_dict(), data)
 
+    def test_to_json(self):
+        """test item to json."""
+
+        data = {
+            "itemId": self.item.itemId,
+            "itemName": self.item.itemName,
+            "unitPrice": self.item.unitPrice,
+            "quantity": self.item.quantity,
+        }
+        item_json = json.loads(self.item.to_json())
+
+        self.assertDictEqual(item_json, data)
+
 
 class CheckoutSetup:
     """Helper class for testing checkout model."""
@@ -172,8 +186,8 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
 
     def test_items(self):
         """test items."""
-        self.assertEqual(self.express_checkout.items, self.single_item)
-        self.assertEqual(self.cart_checkout.items, self.multiple_items)
+        self.assertEqual(list(self.express_checkout.items), self.single_item)
+        self.assertEqual(list(self.cart_checkout.items), self.multiple_items)
 
     def test_validation_with_no_process(self):
         """test checkout model with None value of process type."""
@@ -337,7 +351,7 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
         self.assertDictEqual(cart_dict, data)
 
     def test_to_dict_with_express_process(self):
-        """test to dict with process type Express."""
+        """test to json with process type Express."""
 
         data = {
             "process": EXPRESS,
@@ -348,6 +362,32 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
         express_dict = self.express_checkout.to_dict()
 
         self.assertDictEqual(express_dict, data)
+
+    def test_to_json_with_cart_process(self):
+        """test to json with process type Cart."""
+
+        data = {
+            "process": CART,
+            "merchantId": self.cart_checkout.merchantId,
+            "items": [item.to_dict() for item in self.cart_checkout.items],
+            "expiresInDays": 1,  # Default value
+        }
+        cart_json = json.loads(self.cart_checkout.to_json())
+
+        self.assertDictEqual(cart_json, data)
+
+    def test_to_json_with_express_process(self):
+        """test to json with process type Express."""
+
+        data = {
+            "process": EXPRESS,
+            "merchantId": self.express_checkout.merchantId,
+            "items": [item.to_dict() for item in self.express_checkout.items],
+            "expiresInDays": 1,  # Default value
+        }
+        express_json = json.loads(self.express_checkout.to_json())
+
+        self.assertDictEqual(express_json, data)
 
     def test_checkout_representation(self):
         """test checkout representation."""
