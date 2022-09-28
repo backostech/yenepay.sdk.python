@@ -1,7 +1,7 @@
 """
-Create checkout url for cart process using cart instance.
+Create checkout url for cart process using CartCheckout class.
 """
-from yenepay import Cart, Client, Item
+from yenepay import Cart, CartCheckout, Client, Item
 
 client = Client(merchant_id="0000")
 
@@ -13,7 +13,7 @@ cart = Cart(
     Item("PC_4", 150_000.00, 2),
 )
 
-cart_checkout = client.get_cart_checkout(items=cart)
+cart_checkout = CartCheckout(client, cart)
 
 checkout_url = cart_checkout.get_url()  # Return link for payment, if success
 

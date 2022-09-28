@@ -1,3 +1,6 @@
+"""
+Check payment order status from client instance.
+"""
 from yenepay import Client
 
 client = Client(merchant_id="0000", token="abcd")
