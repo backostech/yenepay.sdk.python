@@ -6,22 +6,54 @@
 Welcome to YenePay's Python SDK (ᴜɴᴏғғɪᴄɪᴀʟ) documentation!
 ===========================================================
 
+.. important::
+
+    **This project is under active development.**
+
 .. image:: https://www.yenepay.com/images/logo.png
        :target: https://www.yenepay.com
        :height: 25px
        :alt: YenePay
 
-.. image:: https://github.com/backostech/yenepay.sdk.python/actions/workflows/pytest.yml/badge.svg
+.. image:: https://github.com/backostech/yenepay.sdk.python/actions/workflows/pytest.yml/badge.svg?style=flat-square
        :target: https://github.com/backostech/yenepay.sdk.python
        :alt: Test
 
-.. image:: https://github.com/backostech/yenepay.sdk.python/actions/workflows/linters.yml/badge.svg
+.. image:: https://github.com/backostech/yenepay.sdk.python/actions/workflows/linters.yml/badge.svg?style=flat-square
        :target: https://github.com/backostech/yenepay.sdk.python
        :alt: Linters
 
-.. image:: https://github.com/backostech/yenepay.sdk.python/actions/workflows/python-publish.yml/badge.svg
+.. image:: https://github.com/backostech/yenepay.sdk.python/actions/workflows/python-publish.yml/badge.svg?style=flat-square
        :target: https://github.com/backostech/yenepay.sdk.python
        :alt: Publication
+
+.. image:: https://img.shields.io/pypi/v/yenepay.svg?style=flat-square
+       :target: https://pypi.python.org/pypi/yenepay
+       :alt: PyPi Package Version
+
+.. image:: https://img.shields.io/pypi/status/yenepay.svg?style=flat-square
+       :target: https://pypi.python.org/pypi/yenepay
+       :alt: PyPi status
+
+.. image:: https://img.shields.io/pypi/dm/yenepay.svg?style=flat-square
+       :target: https://pypi.python.org/pypi/yenepay
+       :alt: Downloads
+
+.. image:: https://img.shields.io/pypi/pyversions/yenepay.svg?style=flat-square
+       :target: https://pypi.python.org/pypi/yenepay
+       :alt: Supported python versions
+
+.. image:: https://img.shields.io/readthedocs/yenepay?style=flat-square
+       :target: http://yenepay.readthedocs.io
+       :alt: Documentation Status
+
+.. image:: https://img.shields.io/github/issues/backostech/yenepay.sdk.python.svg?style=flat-square
+       :target: https://github.com/backostech/yenepay.sdk.python/issues
+       :alt: Github issues
+
+.. image:: https://img.shields.io/pypi/l/yenepay.svg?style=flat-square
+       :target: https://opensource.org/licenses/MIT
+       :alt: MIT License
 
 This library allows you to quickly and easily add YenePay as a payment method using Python
 
@@ -56,12 +88,16 @@ Checking PDT Status
 
 .. literalinclude:: ../../examples/pdt.py
 
+Read :ref:`usage` for more detail
+
 Contents
 =========
 .. toctree::
    :maxdepth: 3
 
    install/
+   usage/
+   examples/
    api_reference/
 
 

@@ -6,8 +6,10 @@ API Reference for YenePay
 Client
 --------
 
-.. automodule:: yenepay.models.client
+.. autoclass:: yenepay.models.client.Client
     :members:
+    :undoc-members:
+    :inherited-members:
 
 Checkout
 ---------
@@ -16,6 +18,14 @@ Item
 ^^^^^
 
 .. autoclass:: yenepay.models.checkout.Item
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+Cart
+^^^^^
+
+.. autoclass:: yenepay.models.checkout.Cart
     :members:
     :undoc-members:
     :inherited-members:
@@ -35,6 +45,7 @@ ExpressCheckout
     :members:
     :undoc-members:
     :inherited-members:
+    :show-inheritance:
 
 CartCheckout
 ^^^^^^^^^^^^^
@@ -43,6 +54,7 @@ CartCheckout
     :members:
     :undoc-members:
     :inherited-members:
+    :show-inheritance:
 
 
 PDT
@@ -82,3 +94,8 @@ ApiRequest
     :members:
     :undoc-members:
     :inherited-members:
+
+Exceptions
+-----------
+
+.. autoclass:: yenepay.exceptions.CheckoutError
