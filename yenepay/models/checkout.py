@@ -93,6 +93,142 @@ class Item:
         return self.__repr__()
 
 
+class Cart:
+    """
+    Represent a collection of multiple items to be purchased. Add addtional
+    functionalityies for items.
+    """
+
+    def __init__(self, *items: typing.List[Item]) -> None:
+        """
+        :param items: Collection of :class:`yenepay.models.checkout.Item` objects
+        :type items: List of :class:`yenepay.models.checkout.Item`
+
+        :rtype: :obj:`None`
+        """
+
+        self._items = list(items)
+        self._total_price = 0
+        self._total_quantity = 0
+        self._validate()
+
+    def _validate(self) -> None:
+        """
+        Validate cart configurations, and initialize cart properties.
+        """
+
+        for idx, item in enumerate(self._items):
+            self.__validate_item(item, idx)
+            self._total_price += item.unitPrice
+            self._total_quantity += item.quantity
+
+    def __validate_item(
+        self, item: Item, idx: typing.Optional[int] = 0
+    ) -> None:
+        """Validate a single item is valid or not."""
+
+        if not isinstance(item, Item):
+            raise TypeError(
+                "Items parameter must be type of yenepay.Item,"
+                "got {} at index {}".format(type(item).__name__, idx)
+            )
+
+    def create_item(
+        self,
+        name: str,
+        unit_price: float,
+        quantity: int,
+        item_id: typing.Optional[str] = None,
+    ) -> Item:
+        """
+        Create a new Item instance and add into a cart.
+
+        :param name: A unique identifier of the item (SKU, UUID,…)
+                that is used to identify the item on the merchant’s
+                platform.
+        :type name: :func:`str`
+
+        :param unit_price: Amount in ETB currency. Required for Express type
+                checkout.
+        :type unit_price: :func:`float`
+
+        :param quantity: Quantity of the item. Required for Express type
+                checkout.
+        :type quantity: :func:`int`
+
+        :param item_id: Optional item id. Required for Express type
+                checkout.
+        :type item_id: Optional :func:`str`
+
+        :return: Created item
+        :rtype: :class:`yenepay.models.checkout.Item`
+        """
+        itemId = item_id or str(uuid.uuid4())
+        item = Item(name, unit_price, quantity, itemId)
+        self._items.append(item)
+
+        return item
+
+    def __iter__(self) -> typing.Iterator:
+        """return iterator of a given cart."""
+        return iter(self._items)
+
+    def __contains__(self, item: Item) -> bool:
+        """Check a given item is in the cart."""
+        return item in self._items
+
+    def add_item(self, item: Item) -> None:
+        """
+        Add a single item into a cart.
+
+        :param item: Item to be added into a cart.
+        :type item: :class:`yenepay.models.checkout.Item`
+        :rtype: :obj:`None`
+        """
+        self.__validate_item(item)
+        self._items.append(item)
+        self._total_price += item.unitPrice
+        self._total_quantity += item.quantity
+
+    def __iadd__(self, item: Item) -> None:
+        """add item into a cart."""
+        self.__validate_item(item)
+        self._items.append(item)
+
+    def __imul__(self, value: int) -> None:
+        """multiply number of items."""
+        self._items *= value
+        self._total_price *= value
+        self._total_quantity *= value
+
+    def __len__(self) -> None:
+        """return number of items."""
+        return len(self._items)
+
+    def __getitem__(self, postion: int) -> Item:
+        """return item at a given postion."""
+        return self._items[postion]
+
+    def __repr__(self) -> typing.List:
+        """return cart representation."""
+        return str(self._items)
+
+    @property
+    def total_price(self) -> float:
+        """
+        :return: cart total price
+        :rtype: :func:`float`
+        """
+        return self._total_price
+
+    @property
+    def total_quantity(self) -> int:
+        """
+        :return: cart total quantity.
+        :rtype: :func:`int`
+        """
+        return self._total_quantity
+
 class Checkout(metaclass=ABCMeta):
     """
     Creates a new payment order on YenePay for the authenticated user and
