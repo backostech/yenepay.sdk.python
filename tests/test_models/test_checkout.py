@@ -265,26 +265,32 @@ class TestCheckoutWithRequiredAttributes(CheckoutSetup, unittest.TestCase):
     def test_items_with_empty_list(self):
         """test items with empty list."""
         with self.assertRaises(ValueError):
-            self.get_express_checkout(items=[])
+            checkout = self.get_express_checkout(items=[])
+            checkout.get_url()
 
         with self.assertRaises(ValueError):
-            self.get_express_checkout(items=[])
+            checkout = self.get_express_checkout(items=[])
+            checkout.get_url()
 
     def test_items_with_empty_tuple(self):
         """test items with empty tuple."""
         with self.assertRaises(ValueError):
-            self.get_express_checkout(items=())
+            checkout = self.get_express_checkout(items=())
+            checkout.get_url()
 
         with self.assertRaises(ValueError):
-            self.get_express_checkout(items=())
+            checkout = self.get_express_checkout(items=())
+            checkout.get_url()
 
     def test_items_with_empty_set(self):
         """test items with empty tuple."""
         with self.assertRaises(ValueError):
-            self.get_express_checkout(items=set())
+            checkout = self.get_express_checkout(items=set())
+            checkout.get_url()
 
         with self.assertRaises(ValueError):
-            self.get_express_checkout(items=set())
+            checkout = self.get_express_checkout(items=set())
+            checkout.get_url()
 
     def test_items_with_invalid_single_item_type(self):
         """test items with invalid single item type."""
