@@ -261,6 +261,42 @@ class Cart(Validator):
         self._total_price += item.unitPrice
         self._total_quantity += item.quantity
 
+    def remove_item(self, value: typing.Union[int, str]):
+        """
+        Remove item from the cart. use item id if string is sent or use
+        value as index postion which items are added.
+
+        :param value: item id or position, which is need to be removed.
+        :type value: (:func:`int` or :func:`str`)
+
+        :raise Value Error: if a given value of item position or item id is
+            invalid.
+
+        :return: item removed from the list
+        :rtype: :class:`yenepay.models.checkout.Item`
+        """
+        item = None
+        if isinstance(value, int):
+            item = self._items.pop(value)
+        elif isinstance(value, str):
+            for idx, item in enumerate(self._items):
+                if item.id == value:
+                    item = self._items.pop(idx)
+                    break
+        if item is None:
+            raise ValueError("Item ID or position is invalid.")
+
+        self._total_price -= item.unit_price
+        self._total_quantity -= item.quantity
+        return item
+
+    def clear_items(self) -> None:
+        """
+        Remove all items inside the cart.
+
+        :rtype: :obj:`None`
+        """
+        self._items.clear()
 
     def __iadd__(self, item: Item) -> None:
         """add item into a cart."""
@@ -814,6 +850,38 @@ class CartCheckout(Checkout):
         kwargs.pop("process", None)
         super().__init__(client, CART, *args, **kwargs)
 
+    def create_item(
+        self,
+        name: str,
+        unit_price: float,
+        quantity: int,
+        item_id: typing.Optional[str] = None,
+    ) -> Item:
+        """
+        Create a new Item instance and add into a cart.
+
+        :param name: A unique identifier of the item (SKU, UUID,…)
+                that is used to identify the item on the merchant’s
+                platform.
+        :type name: :func:`str`
+
+        :param unit_price: Amount in ETB currency. Required for Express type
+                checkout.
+        :type unit_price: :func:`float`
+
+        :param quantity: Quantity of the item. Required for Express type
+                checkout.
+        :type quantity: :func:`int`
+
+        :param item_id: Optional item id. Required for Express type
+                checkout.
+        :type item_id: Optional :func:`str`
+
+        :return: Created item
+        :rtype: :class:`yenepay.models.checkout.Item`
+        """
+        return self.items.create_item(name, unit_price, quantity, item_id)
+
     def add_item(self, item):
         """
         Add item into a cart.
@@ -837,3 +905,28 @@ class CartCheckout(Checkout):
 
         for item in items:
             self.add_item(item)
+
+    def remove_item(self, value: typing.Union[int, str]):
+        """
+        Remove item from the cart. use item id if string is sent or use
+        value as index postion which items are added.
+
+        :param value: item id or position, which is need to be removed.
+        :type value: (:func:`int` or :func:`str`)
+
+        :raise ValueError: if number of item in the cart is less than 2.
+        :raise Value Error: if a given value of item position or item id is
+            invalid.
+
+        :return: item removed from the list
+        :rtype: :class:`yenepay.models.checkout.Item`
+        """
+        return self.items.remove_item(value)
+
+    def clear_items(self) -> None:
+        """
+        Remove all items inside the cart.
+
+        :rtype: :obj:`None`
+        """
+        self.items.clear_items()
