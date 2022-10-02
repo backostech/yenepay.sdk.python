@@ -4,6 +4,8 @@
 Usage
 ######
 
+.. include:: common_terms.rst
+
 Client
 ======
 
@@ -12,7 +14,7 @@ Client
 Creating client
 ****************
 
-Inorder to create a client instance it is required to have a merchant/seller code. If you don't have one, first need to register on YenePay as a merchant and get your seller code. You can do that from https://www.yenepay.com/merchant.
+Inorder to create a client instance it is required to have a merchant/seller code. If you don't have one, first need to register on YenePay as a merchant and get your seller code. Read how you would get one from https://community.yenepay.com/docs/getting-started/get-your-seller-merchant-code/
 
 .. code-block:: python
 
@@ -30,6 +32,7 @@ If you are going to check PDT status of you payment order, you must provide PDT 
 
 When ever you have a sandbox merchant ID and PDT token you must set `use_sanbox=True` while you create instance. Default is set to `False`
 
+
 .. code-block:: python
 
     from yenepay import Client
@@ -38,6 +41,8 @@ When ever you have a sandbox merchant ID and PDT token you must set `use_sanbox=
 
     # You can check whether client is using sanbox or not use `is_sandbox` attribute
     client.is_sandbox # True
+
+.. warning:: If you use sandbox account details (merchant id and/or PDT token) without using `use_sanbox=True` will raise :exc:`yenepay.exceptions.CheckoutError`
 
 Generating checkout url
 ************************
@@ -122,3 +127,8 @@ If you want to check whether your payment order is paid or not, you can send pdt
     pdt_status.status # Paid
 
     pdt_status.buyer_id # 1103cdca12
+
+
+    # Or you ca checkfrom checkout instance
+
+    pdt_status = express_checkout.check_pdt_status("01cd13eae42") # transaction id
