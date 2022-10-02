@@ -8,8 +8,8 @@ from pprint import pformat
 from requests import codes
 
 from yenepay.api import ApiRequest
-from yenepay.exceptions import CheckoutError
-from yenepay.helpers import Validator
+from yenepay.exceptions import PDTError
+from yenepay.helpers import Validator, to_python_attr
 
 
 class PDT(Validator):
@@ -123,6 +123,11 @@ class PDT(Validator):
         """
         return self.use_sandbox
 
+    @is_sandbox.setter
+    def is_sandbox(self, value: bool) -> None:
+        """set PDT sandbox status"""
+        self.use_sandbox = value
+
     def to_dict(self) -> dict:
         """
         Convert PDT properties into dictionary object.
@@ -149,7 +154,7 @@ class PDT(Validator):
         if status_code == codes.ok:
             return PDTResponse(response, self)
         else:
-            raise CheckoutError(pformat(response))
+            raise PDTError(pformat(response))
 
     def __repr__(self) -> str:
         """return pdt representation."""
@@ -181,23 +186,4 @@ class PDTResponse:
         matches = re.findall(pattern, self._response)
 
         for attr, value in matches:
-            setattr(self, self._to_python_attr(attr), value)
-
-    def _to_python_attr(self, attr: str) -> str:
-        """return a given attribute name into snake case.
-
-        >>> response = PDTResponse("status=success", None)
-        >>> response._to_python_attr("TotalAmount")
-        'total_amount'
-
-        >>> response._to_python_attr("Status")
-        'status'
-
-        >>> response._to_python_attr("BuyerID")
-        'buyer_id'
-        """
-        pattern = r"(?:[A-Z])[a-z0-9_]*"
-        attr = attr.replace("ID", "Id")
-        matches = re.findall(pattern, attr)
-
-        return "_".join((match.lower() for match in matches))
+            setattr(self, to_python_attr(attr), value)

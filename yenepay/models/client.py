@@ -74,6 +74,11 @@ class Client:
         """
         return self.use_sandbox
 
+    @is_sandbox.setter
+    def is_sandbox(self, value: bool) -> None:
+        """set client sandbox status"""
+        self.use_sandbox = value
+
     def get_cart_checkout(self, *args, **kwargs):
         """
         Create :class:`yenepay.models.checkout.CartCheckout` instance

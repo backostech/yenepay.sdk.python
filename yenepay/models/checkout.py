@@ -712,6 +712,11 @@ class Checkout(Validator, metaclass=ABCMeta):
         """
         return self._client.use_sandbox
 
+    @is_sandbox.setter
+    def is_sandbox(self, value: bool) -> None:
+        """set client sandbox status"""
+        self._client.use_sandbox = value
+
     @property
     def total_price(self) -> float:
         """
