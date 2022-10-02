@@ -9,9 +9,10 @@ from requests import codes
 
 from yenepay.api import ApiRequest
 from yenepay.exceptions import CheckoutError
+from yenepay.helpers import Validator
 
 
-class PDT:
+class PDT(Validator):
     """A class to checks the latest status of a payment order"""
 
     def __init__(
@@ -44,6 +45,16 @@ class PDT:
         self.merchantOrderId = merchant_order_id
         self.transactionId = transaction_id
         self.use_sandbox = use_sandbox
+
+    def _validate_client(self, value):
+        """validate client attribute."""
+        from yenepay.models.client import Client
+
+        if not isinstance(value, Client):
+            raise TypeError(
+                "client attribute must be instance of yenepay.Client, got "
+                "{}".format(type(self._client).__name__)
+            )
 
     @property
     def requestType(self) -> str:

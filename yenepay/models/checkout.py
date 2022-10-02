@@ -12,10 +12,11 @@ from requests import codes
 from yenepay.api import ApiRequest
 from yenepay.constants import CART, EXPRESS
 from yenepay.exceptions import CheckoutError
+from yenepay.helpers import Validator
 from yenepay.models.pdt import PDT
 
 
-class Item:
+class Item(Validator):
     """
     Represent a single item to be purchased. Item will be used when Express or
     Cart checkout is created.
@@ -78,10 +79,10 @@ class Item:
         :rtype: :obj:`None`
         """
 
-        self.itemId = item_id or str(uuid.uuid4())
-        self.itemName = name
-        self.unitPrice = unit_price
-        self.quantity = quantity
+        self.itemId: str = item_id or str(uuid.uuid4())
+        self.itemName: str = name
+        self.unitPrice: float = unit_price
+        self.quantity: int = quantity
 
     @property
     def id(self) -> typing.Union[str, uuid.UUID]:
@@ -154,8 +155,18 @@ class Item:
         """return item string represenation."""
         return self.__repr__()
 
+    def _validate_quantity(self, value: int) -> None:
+        """validator item quantity"""
+        if value < 1:
+            raise ValueError("Item quantity cannot be less than 1")
 
-class Cart:
+    def _validate_unitPrice(self, value: float):
+        """validate item unit price."""
+        if value < 0:
+            raise ValueError("Item unit price cannot be negative.")
+
+
+class Cart(Validator):
     """
     Represent a collection of multiple items to be purchased. Add addtional
     functionalityies for items.
@@ -167,33 +178,30 @@ class Cart:
                       objects
         :type items: List of :class:`yenepay.models.checkout.Item`
 
+        :raise: TypeError: if one of the items is not an instance of
+            :class:`yenepay.models.checkout.Item`
         :rtype: :obj:`None`
         """
 
-        self._items = list(items)
-        self._total_price = 0
-        self._total_quantity = 0
-        self._validate()
+        self._total_price: float = 0
+        self._total_quantity: int = 0
+        self._items: typing.List = list(items)
 
-    def _validate(self) -> None:
-        """
-        Validate cart configurations, and initialize cart properties.
-        """
-
-        for idx, item in enumerate(self._items):
-            self.__validate_item(item, idx)
+    def _validate__items(self, value):
+        """Validate items attribute."""
+        for idx, item in enumerate(value):
+            self._validate_item(item, idx)
             self._total_price += item.unitPrice
             self._total_quantity += item.quantity
 
-    def __validate_item(
+    def _validate_item(
         self, item: Item, idx: typing.Optional[int] = 0
     ) -> None:
         """Validate a single item is valid or not."""
-
         if not isinstance(item, Item):
             raise TypeError(
-                "Items parameter must be type of yenepay.Item,"
-                "got {} at index {}".format(type(item).__name__, idx)
+                "Items parameter must be type of yenepay.models.checkout.Item"
+                ", got {} at index {}".format(type(item).__name__, idx)
             )
 
     def create_item(
@@ -226,8 +234,8 @@ class Cart:
         :return: Created item
         :rtype: :class:`yenepay.models.checkout.Item`
         """
-        itemId = item_id or str(uuid.uuid4())
-        item = Item(name, unit_price, quantity, itemId)
+        itemId: str = item_id or str(uuid.uuid4())
+        item: Item = Item(name, unit_price, quantity, itemId)
         self._items.append(item)
 
         return item
@@ -248,14 +256,15 @@ class Cart:
         :type item: :class:`yenepay.models.checkout.Item`
         :rtype: :obj:`None`
         """
-        self.__validate_item(item)
+        self._validate_item(item)
         self._items.append(item)
         self._total_price += item.unitPrice
         self._total_quantity += item.quantity
 
+
     def __iadd__(self, item: Item) -> None:
         """add item into a cart."""
-        self.__validate_item(item)
+        self._validate_item(item)
         self._items.append(item)
 
     def __imul__(self, value: int) -> None:
@@ -293,7 +302,7 @@ class Cart:
         return self._total_quantity
 
 
-class Checkout(metaclass=ABCMeta):
+class Checkout(Validator, metaclass=ABCMeta):
     """
     An abstract class to creates a new payment order on YenePay  for a given
     items and generate redirect link to checkout application to complete the
@@ -305,7 +314,7 @@ class Checkout(metaclass=ABCMeta):
         self,
         client: str,
         process: str,
-        items: typing.Union[typing.List[Item], Cart],
+        items: typing.Union[typing.List[Item], Cart] = [],
         merchant_order_id: typing.Optional[str] = None,
         success_url: typing.Optional[str] = None,
         cancel_url: typing.Optional[str] = None,
@@ -399,64 +408,72 @@ class Checkout(metaclass=ABCMeta):
                 be added to the cart items total amount.
         :type total_items_tax2: Optional :func:`float`
 
+        :raise TypeError:
+            - if client attribute is not instance of
+                :class:`yenepay.models.client.Client`.
+            - if Items are not instance of :func:`list`, :func:`set`,
+                :func:`tuple` or :class:`yenepay.models.checkout.Cart`.
+
+        :raise ValueError:
+            - if process is :obj:`None` or not :obj:`Express` or :obj:`Cart`.
+            - if multiple item is used for
+                :obj:`Express` process.
+
         :rtype: :obj:`None`
         """
 
         self._client = client
-        self._process = process
-        self.items = items
-        self.merchantOrderId = merchant_order_id
-        self.successUrl = success_url
-        self.cancelUrl = cancel_url
-        self.ipnUrl = ipn_url
-        self.failureUrl = failure_url
-        self.expiresAfter = expires_after
-        self.expiresInDays = expires_in_days
-        self.totalItemsHandlingFee = total_items_handling_fee
-        self.totalItemsDeliveryFee = total_items_delivery_fee
-        self.totalItemsDiscount = total_items_discount
-        self.totalItemsTax1 = total_items_tax1
-        self.totalItemsTax2 = total_items_tax2
-        self._validate()
-
-    def _validate(self) -> None:
-        """
-        validate configuration.
-        """
-
-        from yenepay.models.client import Client
-
-        if not isinstance(self._client, Client):
-            raise TypeError(
-                "client must be instance of yenepay.Client, got {}".format(
-                    type(self._client).__name__
-                )
-            )
-
-        if self.process is None:
-            raise ValueError("Checkout process cannot be None.")
-
-        if self.process not in (EXPRESS, CART):
-            raise ValueError(
-                "Process must be {} or {}, got {}".format(
-                    EXPRESS, CART, self.process
-                )
-            )
-
-        if not isinstance(self.items, (tuple, set, list, Cart)):
-            raise TypeError(
-                "Items must be tuple, set, list or yenepay.Cart,"
-                " got {}".format(type(self.items).__name__)
-            )
-
-        if not self.items:
-            raise ValueError("Items cannot be empty")
+        self._process: str = process
+        self.items: typing.List[Item] = items
+        self.merchantOrderId: str = merchant_order_id
+        self.successUrl: str = success_url
+        self.cancelUrl: str = cancel_url
+        self.ipnUrl: str = ipn_url
+        self.failureUrl: str = failure_url
+        self.expiresAfter: int = expires_after
+        self.expiresInDays: int = expires_in_days
+        self.totalItemsHandlingFee: float = total_items_handling_fee
+        self.totalItemsDeliveryFee: float = total_items_delivery_fee
+        self.totalItemsDiscount: float = total_items_discount
+        self.totalItemsTax1: float = total_items_tax1
+        self.totalItemsTax2: float = total_items_tax2
 
         if not isinstance(self.items, Cart):
             cart = Cart(*(item for item in self.items))
             self.items = cart
 
-        if self.process == EXPRESS and len(self.items) > 1:
+    def _validate_client(self, value):
+        """validate client attribute."""
+        from yenepay.models.client import Client
+
+        if not isinstance(value, Client):
+            raise TypeError(
+                "client attribute must be instance of yenepay.Client, got "
+                "{}".format(type(self._client).__name__)
+            )
+
+    def _validate__process(self, value):
+        """validate _process attribute."""
+        if value is None:
+            raise ValueError("Checkout process cannot be None.")
+
+        if value not in (EXPRESS, CART):
+            raise ValueError(
+                "Process must be {} or {}, got {}".format(EXPRESS, CART, value)
+            )
+
+        if getattr(self, "_process", None) is not None:
+            raise AttributeError("process type attribute is immutable.")
+
+    def _validate_items(self, value):
+        """validate items attribute."""
+        if not isinstance(value, (tuple, set, list, Cart)):
+            raise TypeError(
+                "Items must be tuple, set, list or yenepay.Cart,"
+                " got {}".format(type(value).__name__)
+            )
+
+        if self.process == EXPRESS and len(value) > 1:
             raise ValueError(
                 "'{}' process is for a single item. if you want to "
                 "purchase multiple item use '{}' for process"
@@ -675,12 +692,6 @@ class Checkout(metaclass=ABCMeta):
         """
         return self.items.total_quantity
 
-    def __setattr__(self, attr, value) -> None:
-        """set attribute value."""
-        if attr == "_process" and getattr(self, attr, None) is not None:
-            raise AttributeError("process type attribute is immutable.")
-        super().__setattr__(attr, value)
-
     def to_dict(self) -> dict:
         """
         Convert checkout properties into dictionary object.
@@ -738,9 +749,12 @@ class Checkout(metaclass=ABCMeta):
         :return: checkout url for payment order
         :rtype: :func:`str`
 
+        :raise ValueError: if items is empty.
         :raise yenepay.exceptions.CheckoutError: if paramenters
                 are incorrect.
         """
+        if not self.items:
+            raise ValueError("Items cannot be empty")
 
         status_code, response = ApiRequest.checkout(
             self.to_dict(), self.is_sandbox
