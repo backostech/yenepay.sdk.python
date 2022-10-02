@@ -76,26 +76,32 @@ PDTResponse
     :undoc-members:
     :inherited-members:
 
-API
+IPN
 ----
 
-Api
+IPN
 ^^^^
 
-.. autoclass:: yenepay.api.Api
+.. autoclass:: yenepay.models.ipn.IPN
     :members:
     :undoc-members:
     :inherited-members:
+
+API
+----
+
 
 ApiRequest
 ^^^^^^^^^^^
 
 .. autoclass:: yenepay.api.ApiRequest
     :members:
-    :undoc-members:
-    :inherited-members:
 
 Exceptions
 -----------
 
 .. autoclass:: yenepay.exceptions.CheckoutError
+
+.. autoclass:: yenepay.exceptions.PDTError
+
+.. autoclass:: yenepay.exceptions.IPNError
